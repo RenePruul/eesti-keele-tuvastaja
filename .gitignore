@@ -1,0 +1,24 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.validation-data/
+.DS_Store
+*.egg-info/
+build/
+dist/
+.env
+
+# Kohalikud uurimis- ja integratsioonifailid, mida avalikku repot ei lisata.
+/docs/
+/scripts/
+/validation/
+/TODO.md
+/requirements.txt
+/src/automaatkorrektor/
+/src/keele_tuvastaja/lingua_detector.py
+/tests/test_client.py
+/tests/test_lingua_detector.py
+/tests/test_oppijad.py
+/tests/test_stream.py
+/tests/test_valideeri.py

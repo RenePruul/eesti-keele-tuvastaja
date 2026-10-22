@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "eesti-keele-tuvastaja"
+version = "0.1.0"
+description = "Kiire eesti keele tuvastaja lühitekstidele"
+readme = "README.md"
+license = {file = "LICENSE"}
+requires-python = ">=3.10"
+dependencies = [
+  "py3langid==0.4.0",
+]
+
+[project.optional-dependencies]
+api = [
+  "fastapi>=0.115,<1",
+  "uvicorn>=0.32,<1",
+]
+test = [
+  "httpx2>=2,<3",
+]
+
+[project.scripts]
+eesti-keel = "keele_tuvastaja.detector:main"
+keele-api = "keele_tuvastaja.api:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["keele_tuvastaja*"]
+
+[project.urls]
+Repository = "https://github.com/RenePruul/eesti-keele-tuvastaja"
+Issues = "https://github.com/RenePruul/eesti-keele-tuvastaja/issues"

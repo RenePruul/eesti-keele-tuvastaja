@@ -8,8 +8,6 @@ __pycache__/
 build/
 dist/
 .env
-
-# Kohalikud uurimis- ja integratsioonifailid, mida avalikku repot ei lisata.
 /docs/
 /scripts/
 /validation/

@@ -1,5 +1,7 @@
 """Eesti keele tuvastaja avalik Python API."""
 
-from .detector import Detection, Verdict, detect, is_estonian, warm_up
+__version__ = "0.3.0"
 
-__all__ = ["Detection", "Verdict", "detect", "is_estonian", "warm_up"]
+from .detector import Detection, Verdict, detect, is_estonian
+
+__all__ = ["Detection", "Verdict", "detect", "is_estonian"]

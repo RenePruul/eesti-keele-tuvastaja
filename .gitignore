@@ -13,10 +13,7 @@ dist/
 /validation/
 /TODO.md
 /requirements.txt
-/src/automaatkorrektor/
 /src/keele_tuvastaja/lingua_detector.py
-/tests/test_client.py
 /tests/test_lingua_detector.py
 /tests/test_oppijad.py
-/tests/test_stream.py
 /tests/test_valideeri.py

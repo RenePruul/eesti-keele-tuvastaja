@@ -14,5 +14,4 @@ scripts
 tests
 validation
 TODO.md
-src/automaatkorrektor
 src/keele_tuvastaja/lingua_detector.py

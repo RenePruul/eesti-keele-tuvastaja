@@ -12,7 +12,8 @@ from fastapi import FastAPI, HTTPException, Request, Response, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from .detector import detect, warm_up
+from . import __version__
+from .detector import Verdict, _warm_up, detect
 from .settings import Settings
 
 
@@ -21,11 +22,7 @@ class DetectionRequest(BaseModel):
 
 
 class DetectionResponse(BaseModel):
-    verdict: str
-    is_estonian: bool
-    language: str | None
-    confidence: float
-    method: str
+    verdict: Verdict
 
 
 class HealthResponse(BaseModel):
@@ -38,12 +35,12 @@ def create_app(settings: Settings | None = None, *, load_model: bool = True) -> 
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
         if load_model:
-            await asyncio.to_thread(warm_up)
+            await asyncio.to_thread(_warm_up)
         yield
 
     app = FastAPI(
         title="Eesti keele tuvastaja",
-        version="0.1.0",
+        version=__version__,
         lifespan=lifespan,
     )
 
@@ -95,11 +92,7 @@ def create_app(settings: Settings | None = None, *, load_model: bool = True) -> 
             ) from exc
 
         return DetectionResponse(
-            verdict=result.verdict.value,
-            is_estonian=result.is_estonian,
-            language=result.language,
-            confidence=result.confidence,
-            method=result.method,
+            verdict=result.verdict,
         )
 
     return app

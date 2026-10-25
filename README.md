@@ -74,13 +74,14 @@ Näidisvastus:
 
 ```json
 {
-  "verdict": "jah",
-  "is_estonian": true,
-  "language": "et",
-  "confidence": 1.0,
-  "method": "sonastik"
+  "verdict": "jah"
 }
 ```
+
+HTTP API otsus tuleb väljast `verdict`: `jah`, `ei` või `ebakindel`.
+Detailne `language`, `confidence` ja `method` jäävad Pythoni `detect()`
+tulemusse ega kuulu HTTP vastusesse. Pythoni `is_estonian()` mugavusfunktsioon
+ei kuulu samuti HTTP vastusesse.
 
 Teenuse tervist saab kontrollida otspunktist `GET /health`. Interaktiivne
 OpenAPI dokumentatsioon asub töötava serveri aadressil `/docs`.

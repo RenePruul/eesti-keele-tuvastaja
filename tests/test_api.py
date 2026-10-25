@@ -29,21 +29,21 @@ class ApiTests(unittest.TestCase):
 
     def test_all_detection_results(self):
         cases = (
-            (Detection(Verdict.ESTONIAN, "et", 0.99, "test"), True),
-            (Detection(Verdict.NOT_ESTONIAN, "en", 0.98, "test"), False),
-            (Detection(Verdict.UNCERTAIN, None, 0.20, "test"), False),
+            Detection(Verdict.ESTONIAN, "et", 0.99, "test"),
+            Detection(Verdict.NOT_ESTONIAN, "en", 0.98, "test"),
+            Detection(Verdict.UNCERTAIN, None, 0.20, "test"),
         )
         app = create_app(_settings(), load_model=False)
         with TestClient(app) as client:
-            for detection, expected_boolean in cases:
+            for detection in cases:
                 with self.subTest(verdict=detection.verdict):
                     with patch("keele_tuvastaja.api.detect", return_value=detection):
                         response = client.post("/detect", json={"text": "näide"})
 
                     self.assertEqual(response.status_code, 200)
                     payload = response.json()
+                    self.assertEqual(set(payload), {"verdict"})
                     self.assertEqual(payload["verdict"], detection.verdict.value)
-                    self.assertEqual(payload["is_estonian"], expected_boolean)
 
     def test_rejects_empty_text(self):
         with TestClient(create_app(_settings(), load_model=False)) as client:

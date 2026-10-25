@@ -31,12 +31,6 @@ class Detection:
     confidence: float
     method: str
 
-    @property
-    def is_estonian(self) -> bool:
-        """True ainult kindla eestikeelse tulemuse korral."""
-
-        return self.verdict is Verdict.ESTONIAN
-
 
 # Need vormid aitavad just 1–3-sõnalisi tekste, mil statistilisel mudelil on
 # liiga vähe n-gramme. Loend on meelega lühike ja konservatiivne.
@@ -114,10 +108,10 @@ def detect(text: str) -> Detection:
 def is_estonian(text: str) -> bool:
     """Lihtne jah/ei API; ebakindel tulemus loetakse ``False``-iks."""
 
-    return detect(text).is_estonian
+    return detect(text).verdict is Verdict.ESTONIAN
 
 
-def warm_up() -> None:
+def _warm_up() -> None:
     """Laadi statistiline mudel enne esimese päringu vastuvõtmist mällu."""
 
     _identifier()

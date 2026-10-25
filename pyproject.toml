@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "eesti-keele-tuvastaja"
-version = "0.1.0"
+dynamic = ["version"]
 description = "Kiire eesti keele tuvastaja lühitekstidele"
 readme = "README.md"
 license = {file = "LICENSE"}
@@ -29,6 +29,9 @@ keele-api = "keele_tuvastaja.api:main"
 [tool.setuptools.packages.find]
 where = ["src"]
 include = ["keele_tuvastaja*"]
+
+[tool.setuptools.dynamic]
+version = {attr = "keele_tuvastaja.__version__"}
 
 [project.urls]
 Repository = "https://github.com/RenePruul/eesti-keele-tuvastaja"

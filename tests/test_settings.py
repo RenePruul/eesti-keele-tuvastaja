@@ -6,6 +6,14 @@ from keele_tuvastaja.settings import Settings
 
 
 class SettingsTests(unittest.TestCase):
+    def test_defaults_match_automaatkorrektor_client(self):
+        with patch.dict(os.environ, {}, clear=True):
+            settings = Settings.from_env()
+
+        self.assertEqual(settings.max_text_length, 10_000)
+        self.assertEqual(settings.max_request_bytes, 65_536)
+        self.assertEqual(settings.request_timeout_seconds, 2.5)
+
     def test_reads_limits_from_environment(self):
         values = {
             "KEELETUVASTAJA_MAX_TEXT_LENGTH": "123",

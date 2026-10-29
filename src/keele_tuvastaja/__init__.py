@@ -1,6 +1,6 @@
 """Eesti keele tuvastaja avalik Python API."""
 
-__version__ = "0.3.0"
+__version__ = "0.3.1"
 
 from .detector import Detection, Verdict, detect, is_estonian
 

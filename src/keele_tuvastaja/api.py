@@ -10,7 +10,7 @@ from typing import AsyncIterator
 
 from fastapi import FastAPI, HTTPException, Request, Response, status
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from . import __version__
 from .detector import Verdict, _warm_up, detect
@@ -18,6 +18,8 @@ from .settings import Settings
 
 
 class DetectionRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     text: str
 
 
@@ -46,22 +48,29 @@ def create_app(settings: Settings | None = None, *, load_model: bool = True) -> 
 
     @app.middleware("http")
     async def limit_request_size(request: Request, call_next) -> Response:
+        response: Response | None = None
         if request.url.path == "/detect":
             content_length = request.headers.get("content-length")
             if content_length:
                 try:
                     too_large = int(content_length) > config.max_request_bytes
                 except ValueError:
-                    return JSONResponse(
+                    response = JSONResponse(
                         status_code=status.HTTP_400_BAD_REQUEST,
                         content={"detail": "Vigane Content-Length päis"},
                     )
-                if too_large:
-                    return JSONResponse(
+                    too_large = False
+                if response is None and too_large:
+                    response = JSONResponse(
                         status_code=413,
                         content={"detail": "Päring on liiga suur"},
                     )
-        return await call_next(request)
+        if response is None:
+            response = await call_next(request)
+        if request.url.path == "/detect":
+            response.headers["Cache-Control"] = "no-store"
+            response.headers["Pragma"] = "no-cache"
+        return response
 
     @app.get("/health", response_model=HealthResponse)
     async def health() -> HealthResponse:

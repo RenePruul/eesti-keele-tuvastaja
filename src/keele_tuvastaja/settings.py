@@ -31,15 +31,15 @@ def _positive_float(name: str, default: float) -> float:
 @dataclass(frozen=True)
 class Settings:
     max_text_length: int = 10_000
-    max_request_bytes: int = 20_000
-    request_timeout_seconds: float = 5.0
+    max_request_bytes: int = 65_536
+    request_timeout_seconds: float = 2.5
 
     @classmethod
     def from_env(cls) -> "Settings":
         return cls(
             max_text_length=_positive_int("KEELETUVASTAJA_MAX_TEXT_LENGTH", 10_000),
-            max_request_bytes=_positive_int("KEELETUVASTAJA_MAX_REQUEST_BYTES", 20_000),
+            max_request_bytes=_positive_int("KEELETUVASTAJA_MAX_REQUEST_BYTES", 65_536),
             request_timeout_seconds=_positive_float(
-                "KEELETUVASTAJA_REQUEST_TIMEOUT_SECONDS", 5.0
+                "KEELETUVASTAJA_REQUEST_TIMEOUT_SECONDS", 2.5
             ),
         )

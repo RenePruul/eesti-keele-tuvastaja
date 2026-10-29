@@ -86,6 +86,10 @@ ei kuulu samuti HTTP vastusesse.
 Teenuse tervist saab kontrollida otspunktist `GET /health`. Interaktiivne
 OpenAPI dokumentatsioon asub töötava serveri aadressil `/docs`.
 
+`POST /detect` vastustele lisatakse `Cache-Control: no-store` ja
+`Pragma: no-cache`. API ei logi päringu sisu. Uvicorni tavapärane ligipääsulogi
+võib sisaldada kliendi IP-aadressi, meetodit, teed ja vastuse olekukoodi.
+
 Seadistamiseks saab kasutada keskkonnamuutujaid:
 
 - `KEELETUVASTAJA_HOST` – võrguliides, vaikimisi `127.0.0.1`;
@@ -93,6 +97,27 @@ Seadistamiseks saab kasutada keskkonnamuutujaid:
 - `KEELETUVASTAJA_MAX_TEXT_LENGTH` – teksti suurim pikkus märkides;
 - `KEELETUVASTAJA_MAX_REQUEST_BYTES` – HTTP päringu suurim maht baitides;
 - `KEELETUVASTAJA_REQUEST_TIMEOUT_SECONDS` – tuvastuse ajalimiit sekundites.
+
+## Kasutamine Automaatkorrektoriga
+
+Kohalikuks kasutamiseks käivita API vaikimisi aadressil ja jäta
+Automaatkorrektori keeleteenuse aadressiks `http://127.0.0.1:8000`:
+
+```bash
+keele-api
+curl http://127.0.0.1:8000/health
+```
+
+Automaatkorrektor saadab kasutaja selgelt valitud teksti väljale `text` ja
+kasutab vastusest ainult välja `verdict`. Keeleteenus ei paranda ega salvesta
+teksti.
+
+Kaugserveri korral pane API TLS-i lõpetava pöördproksi taha ning sisesta
+Automaatkorrektorisse ainult origin, näiteks `https://keel.example.ee` ilma
+`/detect` teeta. Klient lisab tee ise ja küsib enne teksti saatmist kasutaja
+nõusolekut. Ära avalda Uvicorni HTTP-porti otse internetti. API-l pole
+sisseehitatud autentimist ega kiirusepiirangut; seadista need vajaduse korral
+pöördproksis ning väldi päringukehade logimist.
 
 ## Docker
 

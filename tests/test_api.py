@@ -44,6 +44,27 @@ class ApiTests(unittest.TestCase):
                     payload = response.json()
                     self.assertEqual(set(payload), {"verdict"})
                     self.assertEqual(payload["verdict"], detection.verdict.value)
+                    self.assertEqual(response.headers["cache-control"], "no-store")
+                    self.assertEqual(response.headers["pragma"], "no-cache")
+
+    def test_automaatkorrektor_contract_with_real_detector(self):
+        with TestClient(create_app(_settings(), load_model=False)) as client:
+            estonian = client.post(
+                "/detect",
+                headers={"Accept": "application/json"},
+                json={"text": "Tere, kuidas sul läheb?"},
+            )
+            english = client.post(
+                "/detect",
+                headers={"Accept": "application/json"},
+                json={"text": "my name is jeff"},
+            )
+
+        self.assertEqual(estonian.status_code, 200)
+        self.assertEqual(estonian.json(), {"verdict": "jah"})
+        self.assertEqual(english.status_code, 200)
+        self.assertEqual(english.json(), {"verdict": "ei"})
+        self.assertTrue(estonian.headers["content-type"].startswith("application/json"))
 
     def test_rejects_empty_text(self):
         with TestClient(create_app(_settings(), load_model=False)) as client:
@@ -65,12 +86,23 @@ class ApiTests(unittest.TestCase):
             response = client.post("/detect", json={"text": "tere"})
 
         self.assertEqual(response.status_code, 413)
+        self.assertEqual(response.headers["cache-control"], "no-store")
 
     def test_rejects_invalid_json_shape(self):
         with TestClient(create_app(_settings(), load_model=False)) as client:
             response = client.post("/detect", json={"wrong": "tere"})
 
         self.assertEqual(response.status_code, 422)
+
+    def test_rejects_extra_json_fields(self):
+        with TestClient(create_app(_settings(), load_model=False)) as client:
+            response = client.post(
+                "/detect",
+                json={"text": "tere", "unused": "value"},
+            )
+
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.headers["cache-control"], "no-store")
 
     def test_detection_timeout(self):
         settings = _settings(request_timeout_seconds=0.01)

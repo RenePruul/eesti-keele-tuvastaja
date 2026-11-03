@@ -87,8 +87,6 @@ Võrdlesime kahte varianti:
   kiire.
 - **Lingua** – täpsem lühikestel tekstidel, kuid paigaldus võtab ~293 MB.
 
-Täielik uurimus: [docs/uurimus.md](docs/uurimus.md).
-
 ### Testandmed ja allikad
 
 Testis oli 4000 päris teksti avalikest
@@ -183,10 +181,21 @@ laadimist. Aeg on ühe teksti kohta.
 | Kolm sõna  |  0,011 ms | 0,69 ms |
 | Pikk tekst |  0,031 ms |  2,2 ms |
 
-py3langid on umbes 40–70 korda kiirem. Mõlemad on tavakasutuseks piisavalt
+Eraldi mõõdeti ka palju pikemaid, umbes 350-sõnalisi tekste. Iga tekst on
+liidetud samast korpusest järjestikustest päris lausetest. Tekste oli 160
+(20 igas 8 keeles), pikkus 350–482 sõna, tavaliselt 357 sõna (~2600
+tähemärki). Iga teksti mõõdeti 5 korda.
+
+| ~350 sõna              | py3langid |  Lingua |
+| ---------------------- | --------: | ------: |
+| Keskmine aeg           |   0,49 ms | 12,5 ms |
+| Aeglaseimad 5% (P95)   |   0,67 ms | 19,5 ms |
+| Tekste sekundis        |     ~2000 |     ~80 |
+| Õigeid vastuseid       |      100% |    100% |
+
+py3langid on umbes 25–70 korda kiirem. Mõlemad on tavakasutuseks piisavalt
 kiired. HTTP API koos võrguga vastas Dockeris keskmiselt 11,7 ms-ga
-(10 samaaegset klienti, ~830 päringut sekundis), vt
-[docs/api-test.md](docs/api-test.md).
+(10 samaaegset klienti, ~830 päringut sekundis).
 
 ### Eesti keele õppijate tekst
 
@@ -204,10 +213,6 @@ päris õppijate tekstidega.
 | 9 sõna (1 võõrkeelne) |                            99,4% |                         94,4% |
 
 Seega tasub tuvastajale saata vähemalt viimased 9 sõna.
-
-Detailsed aruanded: [validation/README.md](validation/README.md),
-[validation/LINGUA.md](validation/LINGUA.md),
-[validation/OPPIJAD.md](validation/OPPIJAD.md).
 
 ## Testid
 

@@ -8,13 +8,80 @@ import os
 from contextlib import asynccontextmanager
 from typing import AsyncIterator
 
-from fastapi import FastAPI, HTTPException, Request, Response, status
+from fastapi import FastAPI, HTTPException, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict
+from starlette.datastructures import Headers, MutableHeaders
+from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from . import __version__
 from .detector import Verdict, _warm_up, detect
 from .settings import Settings
+
+_DETECT_PATH = "/detect"
+
+
+class DetectRequestGuard:
+    """Piira ``/detect`` päringu keha suurust ja keela vastuste vahemälu.
+
+    Keha loetakse siin ise ja loendatakse baite, sest ``Content-Length`` võib
+    puududa (``Transfer-Encoding: chunked``). Piiri ületamisel lõpetatakse
+    lugemine kohe ega hoita ülejäänud keha mälus.
+    """
+
+    def __init__(self, app: ASGIApp, max_bytes: int) -> None:
+        self.app = app
+        self.max_bytes = max_bytes
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http" or scope["path"] != _DETECT_PATH:
+            await self.app(scope, receive, send)
+            return
+
+        async def send_no_store(message: Message) -> None:
+            if message["type"] == "http.response.start":
+                headers = MutableHeaders(scope=message)
+                headers["Cache-Control"] = "no-store"
+                headers["Pragma"] = "no-cache"
+            await send(message)
+
+        async def reject(status_code: int, detail: str) -> None:
+            response = JSONResponse(status_code=status_code, content={"detail": detail})
+            await response(scope, receive, send_no_store)
+
+        content_length = Headers(scope=scope).get("content-length")
+        if content_length is not None:
+            try:
+                declared = int(content_length)
+            except ValueError:
+                await reject(status.HTTP_400_BAD_REQUEST, "Vigane Content-Length päis")
+                return
+            if declared > self.max_bytes:
+                await reject(413, "Päring on liiga suur")
+                return
+
+        body = bytearray()
+        more_body = True
+        while more_body:
+            message = await receive()
+            if message["type"] == "http.disconnect":
+                return
+            body += message.get("body", b"")
+            if len(body) > self.max_bytes:
+                await reject(413, "Päring on liiga suur")
+                return
+            more_body = message.get("more_body", False)
+
+        body_sent = False
+
+        async def replay_body() -> Message:
+            nonlocal body_sent
+            if not body_sent:
+                body_sent = True
+                return {"type": "http.request", "body": bytes(body), "more_body": False}
+            return await receive()
+
+        await self.app(scope, replay_body, send_no_store)
 
 
 class DetectionRequest(BaseModel):
@@ -46,37 +113,13 @@ def create_app(settings: Settings | None = None, *, load_model: bool = True) -> 
         lifespan=lifespan,
     )
 
-    @app.middleware("http")
-    async def limit_request_size(request: Request, call_next) -> Response:
-        response: Response | None = None
-        if request.url.path == "/detect":
-            content_length = request.headers.get("content-length")
-            if content_length:
-                try:
-                    too_large = int(content_length) > config.max_request_bytes
-                except ValueError:
-                    response = JSONResponse(
-                        status_code=status.HTTP_400_BAD_REQUEST,
-                        content={"detail": "Vigane Content-Length päis"},
-                    )
-                    too_large = False
-                if response is None and too_large:
-                    response = JSONResponse(
-                        status_code=413,
-                        content={"detail": "Päring on liiga suur"},
-                    )
-        if response is None:
-            response = await call_next(request)
-        if request.url.path == "/detect":
-            response.headers["Cache-Control"] = "no-store"
-            response.headers["Pragma"] = "no-cache"
-        return response
+    app.add_middleware(DetectRequestGuard, max_bytes=config.max_request_bytes)
 
     @app.get("/health", response_model=HealthResponse)
     async def health() -> HealthResponse:
         return HealthResponse(status="ok")
 
-    @app.post("/detect", response_model=DetectionResponse)
+    @app.post(_DETECT_PATH, response_model=DetectionResponse)
     async def detect_language(payload: DetectionRequest) -> DetectionResponse:
         if not payload.text.strip():
             raise HTTPException(

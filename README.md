@@ -2,7 +2,8 @@
 
 Pythoni teek ja HTTP API, mis otsustab, kas tekst on eesti keeles.
 
-Vastus on `jah`, `ei` või `ebakindel`.
+Vastus on `jah`, `ei` või `ebakindel`. `ebakindel` tähendab sisuliselt `ei`:
+tekst pole kindlalt eestikeelne ja `is_estonian()` tagastab `False`.
 
 ## Paigaldamine
 
@@ -108,12 +109,12 @@ seitsme keele vahel peaaegu võrdselt (284–288 teksti keele kohta).
 Tekstid jagati nelja pikkusrühma. Igas rühmas on 1000 teksti: 500 eesti ja
 500 muukeelset (71–72 igast muust keelest). Näited on päris testandmetest:
 
-| Rühm       | Mis see on                                                                                                  |
-| ---------- | ----------------------------------------------------------------------------------------------------------- |
-| Üks sõna   | üksik sõna, nt `investeering`                                                                               |
-| Kaks sõna  | kaks järjestikust sõna lausest, nt `Unustasid mainida`                                                      |
-| Kolm sõna  | kolm järjestikust sõna lausest, nt `autod olen müünud`                                                      |
-| Pikk tekst | terve lause, vähemalt 5 sõna (vt allpool)                                                                   |
+| Rühm       | Mis see on                                             |
+| ---------- | ------------------------------------------------------ |
+| Üks sõna   | üksik sõna, nt `investeering`                          |
+| Kaks sõna  | kaks järjestikust sõna lausest, nt `Unustasid mainida` |
+| Kolm sõna  | kolm järjestikust sõna lausest, nt `autod olen müünud` |
+| Pikk tekst | terve lause, vähemalt 5 sõna (vt allpool)              |
 
 #### Mis on „pikk tekst”?
 
@@ -126,11 +127,11 @@ vähemalt 5 sõna:
 
 Näited testist:
 
-| Sõnu | Lause |
-| ---: | ----- |
-| 5 | Aianduskauplused müüvad küll metsmaasika seemneid. |
-| 12 | Aga see on oskus mille õppimiseks on vaja proovida ära ka kannatamine |
-| 25 | Head autot ei ole nagunii raske müüa ja halva puhul ei oma nimi samuti tähtsust, sest olenemata kuulutamise viisist tuleb enne tehingut siiski kokku saada. |
+| Sõnu | Lause                                                                                                                                                       |
+| ---: | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|    5 | Aianduskauplused müüvad küll metsmaasika seemneid.                                                                                                          |
+|   12 | Aga see on oskus mille õppimiseks on vaja proovida ära ka kannatamine                                                                                       |
+|   25 | Head autot ei ole nagunii raske müüa ja halva puhul ei oma nimi samuti tähtsust, sest olenemata kuulutamise viisist tuleb enne tehingut siiski kokku saada. |
 
 Mitmest lausest koosnevat teksti ei testitud.
 
@@ -139,21 +140,22 @@ Mitmest lausest koosnevat teksti ei testitud.
 Mõõdikud:
 
 - **Õigeid vastuseid** – mitu protsenti kõigist vastustest olid õiged.
-  `ebakindel` loetakse valeks vastuseks.
+  `ebakindel` loetakse vastuseks `ei`: eestikeelse teksti puhul on see vale,
+  muukeelse puhul õige.
 - **Eesti tekste ära tuntud** – mitu protsenti eestikeelsetest tekstidest sai
-  vastuse `jah`. Ülejäänud said `ei` või `ebakindel`.
+  vastuse `jah`.
 - **Vale `jah`** – mitu muukeelset teksti 500-st peeti ekslikult eestikeelseks.
-- **Ebakindel** – mitu protsenti vastustest olid `ebakindel`.
+- **Ebakindel** – mitu protsenti vastustest olid `ebakindel` (ehk `ei`).
 
 **py3langid** (praegune lahendus):
 
 | Rühm       | Õigeid vastuseid | Eesti tekste ära tuntud |   Vale `jah` | Ebakindel |
 | ---------- | ---------------: | ----------------------: | -----------: | --------: |
-| Üks sõna   |            49,2% |                   39,0% |      2 / 500 |     46,4% |
-| Kaks sõna  |            77,9% |                   72,4% |      1 / 500 |     18,5% |
-| Kolm sõna  |            95,2% |                   94,8% |      1 / 500 |      3,5% |
+| Üks sõna   |            69,3% |                   39,0% |      2 / 500 |     46,4% |
+| Kaks sõna  |            86,1% |                   72,4% |      1 / 500 |     18,5% |
+| Kolm sõna  |            97,3% |                   94,8% |      1 / 500 |      3,5% |
 | Pikk tekst |            99,9% |                   99,8% |      0 / 500 |      0,1% |
-| **Kokku**  |        **80,6%** |               **76,5%** | **4 / 2000** | **17,1%** |
+| **Kokku**  |        **88,2%** |               **76,5%** | **4 / 2000** | **17,1%** |
 
 **Lingua** (ei andnud testis kordagi vastust `ebakindel`):
 
@@ -166,8 +168,10 @@ Mõõdikud:
 | **Kokku**  |        **94,2%** |               **88,7%** | **7 / 2000** |
 
 Kokkuvõte: alates kolmest sõnast on mõlemad väga täpsed. Ühe-kahe sõna puhul
-on Lingua selgelt parem. py3langid jätab siis sageli otsuse tegemata
-(`ebakindel`), aga eksib harva.
+on Lingua selgelt parem. py3langid vastab siis sageli `ebakindel` ehk `ei`,
+sest lühikesest sõnast jääb mudelile liiga vähe tähejadasid ja kindlus jääb
+alla 0,20 läve. Seetõttu tunneb see ära vaid 39% eestikeelsetest üksikutest
+sõnadest, aga peab muukeelset sõna eestikeelseks harva.
 
 ### Kiirus
 
@@ -186,12 +190,12 @@ liidetud samast korpusest järjestikustest päris lausetest. Tekste oli 160
 (20 igas 8 keeles), pikkus 350–482 sõna, tavaliselt 357 sõna (~2600
 tähemärki). Iga teksti mõõdeti 5 korda.
 
-| ~350 sõna              | py3langid |  Lingua |
-| ---------------------- | --------: | ------: |
-| Keskmine aeg           |   0,49 ms | 12,5 ms |
-| Aeglaseimad 5% (P95)   |   0,67 ms | 19,5 ms |
-| Tekste sekundis        |     ~2000 |     ~80 |
-| Õigeid vastuseid       |      100% |    100% |
+| ~350 sõna            | py3langid |  Lingua |
+| -------------------- | --------: | ------: |
+| Keskmine aeg         |   0,49 ms | 12,5 ms |
+| Aeglaseimad 5% (P95) |   0,67 ms | 19,5 ms |
+| Tekste sekundis      |     ~2000 |     ~80 |
+| Õigeid vastuseid     |      100% |    100% |
 
 py3langid on umbes 25–70 korda kiirem. Mõlemad on tavakasutuseks piisavalt
 kiired. HTTP API koos võrguga vastas Dockeris keskmiselt 11,7 ms-ga

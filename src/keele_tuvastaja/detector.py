@@ -56,6 +56,12 @@ _STRONG_ESTONIAN_WORDS = frozenset(
     }
 )
 _WORD_RE = re.compile(r"[^\W\d_]+", re.UNICODE)
+'''
+"Tere, kuidas läheb?"      → ['tere', 'kuidas', 'läheb']
+"Mul on 3 kassi_ja koer2"  → ['mul', 'on', 'kassi', 'ja', 'koer']
+"e-post ja it's"           → ['e', 'post', 'ja', 'it', 's']
+"Привет мир"               → ['привет', 'мир']
+'''
 
 
 def _normalise(text: str) -> str:
@@ -82,7 +88,6 @@ def detect(text: str) -> Detection:
     """Otsusta, kas ``text`` on eesti keeles.
 
     Tühi, numbriline või liiga ebaselge sisend annab ``ebakindel`` tulemuse.
-    See on ausam kui juhuslikult mõne keele kasuks otsustamine.
     """
 
     if not isinstance(text, str):
